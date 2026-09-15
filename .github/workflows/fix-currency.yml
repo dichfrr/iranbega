@@ -26,6 +26,9 @@ jobs:
           s = s.replace("<span class=\"pill gold\" id=\"dollarSource\">دلار آزاد: ۲۳۰٬۵۰۰ تومان</span>", "<span class=\"pill gold\" id=\"dollarSource\">دلار آزاد: ۲۳۱٬۴۰۰ تومان</span>")
           s = s.replace("<strong id=\"liveDollar\">۲۳۰٬۵۰۰ تومان</strong>", "<strong id=\"liveDollar\">۲۳۱٬۴۰۰ تومان</strong>")
           s = s.replace("let score=per/70000000;", "let score=per/10000000;")
+          old_level = "const level=Math.max(1,Math.min(10,11-Math.ceil(Math.max(.08,score)/10)))"
+          new_level = "const level=score>=14?1:score>=10?2:score>=7.5?3:score>=5.5?4:score>=4?5:score>=3?6:score>=2.2?7:score>=1.5?8:score>=.9?9:10"
+          s = s.replace(old_level, new_level)
           p.write_text(s, encoding='utf-8')
           PY
       - name: Commit fix
