@@ -1,0 +1,36 @@
+name: Fix currency conversion
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-currency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch currency conversion
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = "let housing='own', dollar=230500;"
+          new = "let housing='own', dollar=231400;\nconst TOMAN_PER_USD=231400;\nconst tomanToUsd=toman=>toman/TOMAN_PER_USD;"
+          s = s.replace(old, new)
+          s = s.replace("$('usd').textContent='$'+(per/dollar).toFixed(0);", "$('usd').textContent='$'+tomanToUsd(per).toFixed(2);\n$('usd').title='محاسبه: درآمد مؤثر سرانه ÷ نرخ دلار به تومان';")
+          s = s.replace("<span class=\"pill gold\" id=\"dollarSource\">دلار آزاد: ۲۳۰٬۵۰۰ تومان</span>", "<span class=\"pill gold\" id=\"dollarSource\">دلار آزاد: ۲۳۱٬۴۰۰ تومان</span>")
+          s = s.replace("<strong id=\"liveDollar\">۲۳۰٬۵۰۰ تومان</strong>", "<strong id=\"liveDollar\">۲۳۱٬۴۰۰ تومان</strong>")
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m "fix: correct toman to USD conversion"
+          git push
